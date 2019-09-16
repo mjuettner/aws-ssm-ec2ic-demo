@@ -2,18 +2,19 @@
 
 This is a CloudFormation template to demonstrate how to connect to AWS EC2 Instances using Systems Manager Session Manager along with EC2 Instance Connect.
 
-There are too many situations to account for to provision perfect IAM roles and policies suited to your environment, so we'll take some shortcuts around those to focus on SSM and EC2 Instance Connect.
+There are too many situations to account for to provision perfect IAM roles and policies suited to your environment, so we'll take some shortcuts around those to focus on the SSM and EC2 Instance Connect pieces.
 
 ## Prerequisites
 
-On your client
+In your client environment, install:
 - AWS CLI
 - Session Manager Plugin for the AWS CLI
 - EC2 Instance Connect CLI
+
 In AWS
 - Have access to a highly privileged user to run CLI commands
 
-You can use [my AWS IDE](https://github.com/mjuettner/aws-ide) to maybe simplify setting up your client environment,  what you see there is literally what I used for this demo.
+You can try using [my AWS IDE](https://github.com/mjuettner/aws-ide) to maybe simplify setting up your client environment,  what you see there is literally what I used for this demo.
 
 ## Setup
 
@@ -22,7 +23,7 @@ Deploy the ssm-ec2ic-demo.yaml CloudFormation template, it will create:
   - Some IAM Resources: A Policy and Role to provide the EC2 instance access to SSM
   - An EC2 Instance: This will reside on the private subnet and it will install the latest SSM Agent
 
-At this point, you should be able to connect to the EC2 instance using ssm
+After deploying the CloudFormation template, you should be able to connect to the EC2 instance using SSM:
 ```
 vagrant@ubuntu-bionic:~$ aws ssm start-session --target i-083e4fe8db85c8777
 
@@ -65,4 +66,3 @@ vagrant@ubuntu-bionic:~$ msftp i-083e4fe8db85c8777
 Connected to i-083e4fe8db85c8777.
 sftp> 
 ```
-
