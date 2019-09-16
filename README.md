@@ -65,3 +65,15 @@ vagrant@ubuntu-bionic:~$ msftp i-083e4fe8db85c8777
 Connected to i-083e4fe8db85c8777.
 sftp> 
 ```
+
+## Summary
+
+So just to reiterate what is happening here.
+- You execute `mssh <instance id>`
+- `mssh` creates a temporary SSH key
+- `mssh` publishes the temporary SSH key to the EC2 instance's metadata
+  - Note: We skipped a whole bunch of IAM stuff here by using a highly privileged user
+- `mssh` then executes `ssh <instance id>`
+- `ssh <instance id>` matches the SSH configuration and triggers the ProxyCommand to be executed
+- The `ProxyCommand` uses SSM to establish an SSH tunnel to the EC2 instance
+- The SSH connection completes over the SSH tunnel
