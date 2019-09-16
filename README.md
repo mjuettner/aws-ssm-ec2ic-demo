@@ -31,9 +31,8 @@ Starting session with SessionId: <username>@<domain>-058d1b1eb3349f5c8
 sh-4.2$ 
 ```
 
-Now, to get EC2 Instance Connect Working with SSM as well, configure your local ssh client to run a command to establish a ProxyTunnel when ssh'ing to EC2 Instances.  In my Ubuntu development environment, that involved modifying my users .ssh/config like so:
+Now, to get EC2 Instance Connect Working with SSM as well, configure your local ssh client to run a command to establish a ProxyTunnel when ssh'ing to EC2 Instances.  In my Ubuntu development environment, that involved modifying my users .ssh/config to look like this:
 ```
-vagrant@ubuntu-bionic:~$ cat .ssh/config
 # SSH over Session Manager
 host i-* mi-*
     ProxyCommand sh -c "aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters 'portNumber=%p'"
