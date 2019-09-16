@@ -68,7 +68,7 @@ sftp>
 
 ## Summary
 
-So just to reiterate what is happening here.
+To reiterate what is happening here:
 - You execute `mssh <instance id>`
 - `mssh` creates a temporary SSH key
 - `mssh` publishes the temporary SSH key to the EC2 instance's metadata
@@ -76,4 +76,7 @@ So just to reiterate what is happening here.
 - `mssh` then executes `ssh <instance id>`
 - `ssh <instance id>` matches the SSH configuration and triggers the ProxyCommand to be executed
 - The `ProxyCommand` uses SSM to establish an SSH tunnel to the EC2 instance
+  - Note: More IAM stuff was skipped here
 - The SSH connection completes over the SSH tunnel
+
+We skipped a bunch of IAM stuff to focus on the interaction between SSM and EC2 Instance Connect, but know that you have full IAM control over all aspects of those two services.  You can read the documentation for those services for all the gory details.
