@@ -12,7 +12,7 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
 Resources:
-  ##### VPC ###############################################
+  ##### VPC #####################################################
   VPC:
     Type: 'AWS::EC2::VPC'
     Properties:
@@ -23,7 +23,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-vpc'
-  ##### Internet Gateway ##################################
+  ##### Internet Gateway ########################################
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
@@ -35,7 +35,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
-  ##### Subnets ###########################################
+  ##### Subnets #################################################
   PublicSubnet1:
     Type: 'AWS::EC2::Subnet'
     Properties:
@@ -56,7 +56,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-private-subnet-1'
-  ##### NAT Gateway #######################################
+  ##### NAT Gateway #############################################
   NATGatewayEIP1:
     Type: 'AWS::EC2::EIP'
     Properties:
@@ -69,7 +69,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-nat-gateway-1'
-  ##### Route Tables ######################################
+  ##### Route Tables ############################################
   PublicSubnetsRouteTable:
     Type: 'AWS::EC2::RouteTable'
     Properties:
@@ -94,7 +94,7 @@ Resources:
     Properties:
       SubnetId: !Ref PrivateSubnet1
       RouteTableId: !Ref PrivateSubnet1RouteTable
-  ##### Routes ############################################
+  ##### Routes ##################################################
   PublicRoute:
     Type: 'AWS::EC2::Route'
     Properties:
@@ -107,7 +107,10 @@ Resources:
       RouteTableId: !Ref PrivateSubnet1RouteTable
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref NATGateway1
-  ##### EC2 ###############################################
+  ###############################################################
+  ##### RELEVANT EC2 CONNECTIVITY CONFIGURATIONS START HERE #####
+  ###############################################################
+  # EC2 Role ####################################################
   InstanceRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -127,11 +130,13 @@ Resources:
     Properties:
       Roles:
         - !Ref InstanceRole
+  # SG with no ingress rules ####################################
   EC2SG:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security group with no inbound access
       VpcId: !Ref VPC
+  # EC2 Instance ################################################
   EC2:
     Type: 'AWS::EC2::Instance'
     Properties:
@@ -149,7 +154,7 @@ Resources:
           #!/bin/bash -xe
           # From: https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-manual-agent-install.html
           yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
-  ##### EC2 Instance Connect ##############################
+  ##### EC2 SSM Access Policy ###################################
   EC2AccessSsmOnly:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
@@ -178,6 +183,7 @@ Resources:
               - 'ssm:TerminateSession'
             Resource:
               - 'arn:aws:ssm:*:*:session/${aws:username}-*'
+  # EC2 SSM SSH Tunnel with Instance Connect Access Policy ######
   EC2AccessSsmAndSshTunnel:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
@@ -201,6 +207,10 @@ Resources:
             Resource:
               - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/${EC2}'
               - !Sub 'arn:aws:ssm:${AWS::Region}::document/AWS-StartSSHSession'
+            #Uncomment to disallow SSM and force user to use SSH
+            #Condition:
+            #  BoolIfExists:
+            #    ssm:SessionDocumentAccessCheck: true
           - Sid: TerminateSession
             Effect: Allow
             Action:
@@ -216,12 +226,6 @@ Resources:
             Condition:
               StringEquals:
                 ec2:osuser: ec2-user
-          - Sid: DenySsmShell
-            Effect: Deny
-            Action:
-              - 'ssm:StartSession'
-            Resource:
-              - !Sub 'arn:aws:ssm:${AWS::Region}::document/SSM-SessionManagerRunShell'
   EC2SSMUser:
     Type: 'AWS::IAM::User'
     Properties:
