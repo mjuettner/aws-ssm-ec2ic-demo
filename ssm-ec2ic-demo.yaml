@@ -216,7 +216,7 @@ Resources:
             Condition:
               StringEquals:
                 ec2:osuser: ec2-user
-          - Sid: DenySsm
+          - Sid: DenySsmShell
             Effect: Deny
             Action:
               - 'ssm:StartSession'
