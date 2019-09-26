@@ -20,10 +20,10 @@ AWS Resource Requirements
 
 CLI Requirements
 ===
+
+You can try using [my AWS IDE](https://github.com/mjuettner/aws-ide) to set up your client environment instead of building your own. The environment created there is literally what was used to build this demo.  If you'd rather set up your own:
+
 * You should have a working [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) environment
 * You should have the [Session Manager Plugin for the AWS CLI](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html) installed
 * You should have the [EC2 Instance Connect CLI](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-set-up.html#ec2-instance-connect-install-eic-CLI) installed
-
-
-You can try using [my AWS IDE](https://github.com/mjuettner/aws-ide) to set up your client environment instead of building your own. The environment created there is literally what was used to build this demo.
 

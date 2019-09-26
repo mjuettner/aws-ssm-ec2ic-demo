@@ -107,7 +107,7 @@ Resources:
       RouteTableId: !Ref PrivateSubnet1RouteTable
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref NATGateway1
-  ##### IAM ###############################################
+  ##### EC2 ###############################################
   InstanceRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -127,7 +127,11 @@ Resources:
     Properties:
       Roles:
         - !Ref InstanceRole
-  ##### EC2 ###############################################
+  EC2SG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group with no inbound access
+      VpcId: !Ref VPC
   EC2:
     Type: 'AWS::EC2::Instance'
     Properties:
@@ -135,6 +139,8 @@ Resources:
       ImageId: !Ref AmiId
       IamInstanceProfile: !Ref InstanceProfile
       SubnetId: !Ref PrivateSubnet1
+      SecurityGroupIds:
+        - !Ref EC2SG
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-ec2-instance'
@@ -143,3 +149,86 @@ Resources:
           #!/bin/bash -xe
           # From: https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-manual-agent-install.html
           yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+  ##### EC2 Instance Connect ##############################
+  EC2AccessSsmOnly:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      Description: Provides user permissions needed to access EC2 instances via Systems Manager Session Manager
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ReadOnly
+            Effect: Allow
+            Action:
+              - 'ssm:DescribeSessions'
+              - 'ssm:GetConnectionStatus'
+              - 'ssm:DescribeInstanceProperties'
+              - 'ec2:DescribeInstances'
+            Resource:
+              - '*'
+          - Sid: StartSession
+            Effect: Allow
+            Action:
+              - 'ssm:StartSession'
+            Resource:
+              - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/${EC2}'
+          - Sid: TerminateSession
+            Effect: Allow
+            Action:
+              - 'ssm:TerminateSession'
+            Resource:
+              - 'arn:aws:ssm:*:*:session/${aws:username}-*'
+  EC2AccessSsmAndSshTunnel:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      Description: Provides user permissions needed to access EC2 instances via Systems Manager Session Manager SSH Tunneling and EC2 Instance Connect
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ReadOnly
+            Effect: Allow
+            Action:
+              - 'ssm:DescribeSessions'
+              - 'ssm:GetConnectionStatus'
+              - 'ssm:DescribeInstanceProperties'
+              - 'ec2:DescribeInstances'
+            Resource:
+              - '*'
+          - Sid: StartSession
+            Effect: Allow
+            Action:
+              - 'ssm:StartSession'
+            Resource:
+              - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/${EC2}'
+              - !Sub 'arn:aws:ssm:${AWS::Region}::document/AWS-StartSSHSession'
+          - Sid: TerminateSession
+            Effect: Allow
+            Action:
+              - 'ssm:TerminateSession'
+            Resource:
+              - 'arn:aws:ssm:*:*:session/${aws:username}-*'
+          - Sid: PublishKey
+            Effect: Allow
+            Action:
+              - 'ec2-instance-connect:SendSSHPublicKey'
+            Resource:
+              - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/${EC2}'
+            Condition:
+              StringEquals:
+                ec2:osuser: ec2-user
+          - Sid: DenySsm
+            Effect: Deny
+            Action:
+              - 'ssm:StartSession'
+            Resource:
+              - !Sub 'arn:aws:ssm:${AWS::Region}::document/SSM-SessionManagerRunShell'
+  EC2SSMUser:
+    Type: 'AWS::IAM::User'
+    Properties:
+      ManagedPolicyArns:
+        - !Ref EC2AccessSsmOnly
+  EC2SSHUser:
+    Type: 'AWS::IAM::User'
+    Properties:
+      ManagedPolicyArns:
+        - !Ref EC2AccessSsmAndSshTunnel
