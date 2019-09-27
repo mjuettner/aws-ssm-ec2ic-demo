@@ -128,6 +128,7 @@ SSMAccessOnly: This is a basic permission set for SSM access to work. This examp
 <br>
 SsmAndSshAccess: This expands the basic SSM access to allow the user to use SSM to establish the SSH tunnel (by referencing the AWS-StartSSHSession document) and to allow the user to publish the temporary public SSH key to the EC2 instances metadata (using SendSSHPublicKey). Again, this example restricts permissions to just the demo EC2 instance, but you can have it apply to the EC2 resources in your environment however you want.  
 <br>
+<br>
 Since this SSH Tunnel connectivity option is built upon the SSM shell connectivity option, you can actually use either method to connect to your EC2 instance using this policy. If you would rather force the user to only use the SSH Tunnel method, you can uncomment the section noted in the template.
 
 ```
