@@ -178,6 +178,7 @@ Since this SSH Tunnel connectivity option is built upon the SSM shell connectivi
 <br>
 EC2SsmUser/EC2SshUserFinally, we just create two users and apply one policy to each of them.
 <br>
+<br>
 You should generate a Password and Access Key pair for each of them to use in testing.
 
 ```
