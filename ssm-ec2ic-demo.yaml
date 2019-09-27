@@ -155,7 +155,7 @@ Resources:
           # From: https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-manual-agent-install.html
           yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
   ##### EC2 SSM Access Policy ###################################
-  EC2AccessSsmOnly:
+  SsmAccessOnly:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
       Description: Provides user permissions needed to access EC2 instances via Systems Manager Session Manager
@@ -184,7 +184,7 @@ Resources:
             Resource:
               - 'arn:aws:ssm:*:*:session/${aws:username}-*'
   # EC2 SSM SSH Tunnel with Instance Connect Access Policy ######
-  EC2AccessSsmAndSshTunnel:
+  SsmAndSshAccess:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
       Description: Provides user permissions needed to access EC2 instances via Systems Manager Session Manager SSH Tunneling and EC2 Instance Connect
@@ -226,13 +226,13 @@ Resources:
             Condition:
               StringEquals:
                 ec2:osuser: ec2-user
-  EC2SSMUser:
+  EC2SsmMUser:
     Type: 'AWS::IAM::User'
     Properties:
       ManagedPolicyArns:
-        - !Ref EC2AccessSsmOnly
-  EC2SSHUser:
+        - !Ref SsmAccessOnly
+  EC2SshUser:
     Type: 'AWS::IAM::User'
     Properties:
       ManagedPolicyArns:
-        - !Ref EC2AccessSsmAndSshTunnel
+        - !Ref SsmAndSshAccess
