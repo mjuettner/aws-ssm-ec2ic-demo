@@ -19,13 +19,13 @@ Or the AWS Console:
 
 This connectivity is purely through the SSM service. Access is controlled via IAM and there are no Security Group rules or SSH keys involved.  One notable downside to usability with this option is files can't be transferred to/from the server over this connection, which many users are used to doing with ssh/scp.
 
-### **Systems Manager Session Manager SSH Tunneling with Temporary SSH Keys**
+### **Systems Manager Session Manager SSH Tunneling with EC2 Instance Connect**
 
 The second example uses Systems Manager Session Manager to establish an SSH Tunnel to the instance combined with EC2 Instance Connect to publish temporary (60 seconds) SSH keys to the instance. This can be done using the `mssh` and `msftp` commands that will be installed as part of the EC2 Instance Connect CLI:
 
 ![mssh-msftp](img/mssh-msftp-cli.gif)
 
-This connectivity is still primarily through the SSM service, which establishes the SSH Tunnel.  The `mssh` or `msftp` command will generate a temporary private/public SSH key pair and make a CLI call to publish the public key to the EC2 instance. You can watch this happen if you supply the `--debug` flag to either command.  Again, access is controlled via IAM, there are still no Security Group rules, and although SSH keys are involved, they are temporary, so don't need to be maintained, distributed, or rotated.  Users will have an experience very close to what they're used to with ssh/scp.
+This connectivity is still primarily through the SSM service, which establishes the SSH Tunnel.  The `mssh` or `msftp` command will generate a temporary private/public SSH key pair and make a CLI call to publish the public key to the EC2 instance. Again, access is controlled via IAM, there are still no Security Group rules, and although SSH keys are involved, they are temporary, so don't need to be maintained, distributed, or rotated.  Users will have an experience very close to what they're used to with ssh/scp.
 
 ---
 ## **CLI Setup**
@@ -78,7 +78,7 @@ InstanceRole: The role for the EC2 instance.  The permissions granted by the Ama
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
 ```
-
+<br />
 EC2: It is very important the EC2 instance has the most recent version of the SSM Agent installed. This UserData input will satisfy that. Note that the instance is completely isolated. There are no ingress security group rules, there is no access key attached, and it's residing on a private subnet. It is leveraging the NAT Gateway (and Internet Gateway) to communicate with and register with the public AWS Systems Manager endpoint.
 
 ```
@@ -92,7 +92,7 @@ EC2: It is very important the EC2 instance has the most recent version of the SS
           # From: https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-manual-agent-install.html
           yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
 ```
-
+<br />
 SSMAccessOnly: This is a basic permission set for SSM access to work. This example restricts the permissions to just the EC2 instance created as part of this CloudFormation template, you can always expand that however you want, let it apply to all EC2 instances in your account, restrict what it applies to with Conditions, etc.
 
 ```
@@ -125,7 +125,7 @@ SSMAccessOnly: This is a basic permission set for SSM access to work. This examp
             Resource:
               - 'arn:aws:ssm:*:*:session/${aws:username}-*'
 ```
-
+<br />
 SsmAndSshAccess: This expands the basic SSM access to allow the user to use SSM to establish the SSH tunnel (by referencing the AWS-StartSSHSession document) and to allow the user to publish the temporary public SSH key to the EC2 instances metadata (using SendSSHPublicKey). Again, this example restricts permissions to just the demo EC2 instance, but you can have it apply to the EC2 resources in your environment however you want.
 
 Since this SSH Tunnel connectivity option is built upon the SSM shell connectivity option, you can actually use either method to connect to your EC2 instance using this policy. If you would rather force the user to only use the SSH Tunnel method, you can uncomment the section noted in the template.
@@ -174,7 +174,7 @@ Since this SSH Tunnel connectivity option is built upon the SSM shell connectivi
               StringEquals:
                 ec2:osuser: ec2-user
 ```
-
+<br />
 EC2SsmUser/EC2SshUserFinally, we just create two users and apply one policy to each of them.
 
 You should generate a Password and Access Key pair for each of them to use in testing.
