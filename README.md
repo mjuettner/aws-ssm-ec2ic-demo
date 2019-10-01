@@ -228,3 +228,8 @@ The SSH through an SSM Tunnel using temporary SSH keys is a little more involved
 - The SSH ProxyCommand configuraton uses the AWS CLI with SSM Plugin to establish an SSH tunnel to the EC2 instance
 - The SSH connection completes over the SSH tunnel
 - After you exit the `mssh` session, the temporary SSH key pair is deleted from your client
+
+---
+## **Conclusion**
+
+- Delete the CloudFormation stack
